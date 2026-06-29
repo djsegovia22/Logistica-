@@ -1,0 +1,44 @@
+[
+  {
+    "id": 1,
+    "username": "superadmin",
+    "password": "4e4c56e4a15f89f05c2f4c72613da2a18c9665d4f0d6acce16415eb06f9be776",
+    "rol": "superadmin"
+  },
+  {
+    "id": 2,
+    "username": "admin1",
+    "password": "240be518fabd2724ddb6f04eeb1da5967448d7e831c08c8fa822809f74c720a9",
+    "rol": "admin"
+  },
+  {
+    "id": 3,
+    "username": "admin2",
+    "password": "becf77f3ec82a43422b7712134d1860e3205c6ce778b08417a7389b43f2b4661",
+    "rol": "admin"
+  },
+  {
+    "id": 1776213365198,
+    "username": "rocio",
+    "password": "2131c65bf715f3f1af43a56f798b5c2722b69aa25b0471a86b8b71501e458d47",
+    "rol": "superadmin"
+  },
+  {
+    "id": 1776213709216,
+    "username": "javier",
+    "password": "26ce13833bf9b1a34904d0b8ff10bc035178931c4ac6d8d02cc2274c6d20a09c",
+    "rol": "admin"
+  },
+  {
+    "id": 1776213718562,
+    "username": "krishna",
+    "password": "b06514d8bc65875cc670a226aa945c492c126ef2da71f226c3ed938aacb27f30",
+    "rol": "admin"
+  },
+  {
+    "id": 1776281070061,
+    "username": "javier1",
+    "password": "168e047b7600aace1a23503e131ccd571129743edbbcd99d9f1bae0666b68c3f",
+    "rol": "admin"
+  }
+]
