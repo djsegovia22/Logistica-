@@ -1,0 +1,813 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DSG Ingenieria - Solicitudes</title>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Segoe UI',system-ui,sans-serif;background:#f2f1ee;color:#1a1a1a;min-height:100vh}
+#vista-publica{min-height:100vh;display:flex;flex-direction:column}
+.pub-hero{background:#1a1a1a;padding:1.75rem 1.5rem 0;display:flex;align-items:center;justify-content:center;flex-direction:column;position:relative}
+.hero-brand{display:flex;align-items:center;gap:16px;padding-bottom:1.5rem}
+.hero-icon{height:64px;border-radius:6px}
+.hero-text{display:flex;flex-direction:column}
+.hero-title{color:#fff;font-size:22px;font-weight:700;letter-spacing:1px;line-height:1.1}
+.hero-sub{color:#F5A623;font-size:13px;font-weight:400;margin-top:3px}
+.hero-bar{width:100%;height:5px;background:#F5A623}
+.secret-trigger{position:absolute;bottom:0;right:0;width:36px;height:36px;cursor:pointer}
+.pub-body{flex:1;display:flex;align-items:flex-start;justify-content:center;padding:2.5rem 1rem}
+.pub-card{background:#fff;border:1px solid #e0ddd5;border-radius:16px;padding:2rem;width:100%;max-width:520px;box-shadow:0 1px 4px rgba(0,0,0,.04)}
+.success-state{text-align:center;padding:2rem 1rem;display:none}
+.success-state .check{font-size:48px;margin-bottom:12px}
+.success-state h3{font-size:18px;font-weight:600;margin-bottom:8px}
+.success-state p{font-size:14px;color:#888;margin-bottom:1.5rem}
+.field{margin-bottom:1.1rem}
+label{display:block;font-size:13px;color:#555;margin-bottom:4px;font-weight:600}
+.req{color:#c0392b;margin-left:2px}
+input,textarea,select{width:100%;padding:10px 12px;font-size:14px;border:1.5px solid #d8d5cd;border-radius:10px;background:#fff;color:#1a1a1a;font-family:inherit;transition:border-color .2s,box-shadow .2s}
+input:focus,textarea:focus,select:focus{outline:none;border-color:#F5A623;box-shadow:0 0 0 3px rgba(245,166,35,.12)}
+input.error,select.error{border-color:#c0392b}
+textarea{resize:vertical;min-height:90px}
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.err-msg{font-size:12px;color:#c0392b;margin-top:3px;display:none}
+.err-msg.show{display:block}
+.btn{padding:10px 20px;font-size:14px;border:1.5px solid #d0cdc5;border-radius:10px;cursor:pointer;background:#fff;color:#1a1a1a;font-family:inherit;font-weight:500;transition:all .15s}
+.btn:hover{background:#f5f4f1}
+.btn.primary{background:#1a1a1a;color:#fff;border-color:#1a1a1a}
+.btn.primary:hover{background:#333}
+.btn.danger{background:#fcebeb;color:#a32d2d;border-color:#f7c1c1}
+.btn.danger:hover{background:#f7c1c1}
+.btn.sm{padding:5px 12px;font-size:12px}
+.btn-row{display:flex;gap:8px;justify-content:flex-end;margin-top:1.25rem}
+.alert{padding:10px 14px;border-radius:10px;font-size:13px;margin-bottom:1rem;font-weight:500}
+.alert.success{background:#eaf3de;color:#3b6d11;border:1px solid #c0dd97}
+.alert.error{background:#fcebeb;color:#a32d2d;border:1px solid #f7c1c1}
+.alert.info{background:#e6f1fb;color:#185fa5;border:1px solid #b5d4f4}
+.alert.warning{background:#faeeda;color:#854f0b;border:1px solid #fac775}
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:100;align-items:center;justify-content:center;padding:1rem;backdrop-filter:blur(2px)}
+.modal-overlay.active{display:flex}
+.modal-card{background:#fff;border-radius:16px;padding:2rem;width:100%;max-width:400px;position:relative;animation:fadeUp .25s ease;box-shadow:0 12px 40px rgba(0,0,0,.15)}
+@keyframes fadeUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
+.modal-card h2{font-size:17px;font-weight:600;margin-bottom:4px}
+.modal-card>p{font-size:13px;color:#888;margin-bottom:1.5rem}
+.modal-close{position:absolute;top:14px;right:16px;font-size:18px;cursor:pointer;color:#aaa;background:none;border:none;line-height:1}
+.modal-card.wide{max-width:440px}
+#vista-admin{display:none;flex-direction:column;min-height:100vh}
+#vista-admin.active{display:flex}
+.topbar{display:flex;align-items:center;justify-content:space-between;padding:0 1.5rem;height:54px;background:#1a1a1a;border-bottom:3px solid #F5A623;position:sticky;top:0;z-index:10}
+.topbar-brand{display:flex;align-items:center;gap:10px}
+.topbar-right{display:flex;align-items:center;gap:10px}
+.user-chip{font-size:13px;color:#bbb}
+.main{display:flex;flex:1}
+.sidebar{width:210px;background:#fff;border-right:1px solid #e0ddd5;padding:1rem 0;flex-shrink:0}
+.nav-item{display:flex;align-items:center;gap:8px;padding:10px 1.25rem;font-size:14px;color:#777;cursor:pointer;border-left:3px solid transparent;transition:all .15s}
+.nav-item:hover{background:#faf9f6;color:#1a1a1a}
+.nav-item.active{color:#1a1a1a;background:#fffbf2;border-left-color:#F5A623;font-weight:600}
+.nav-icon{width:18px;text-align:center;font-size:15px}
+.content{flex:1;padding:2rem;overflow-y:auto}
+.page{display:none}.page.active{display:block}
+.page-title{font-size:20px;font-weight:600;margin-bottom:1.5rem;color:#1a1a1a}
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px;margin-bottom:1.5rem}
+.stat{background:#fff;border:1.5px solid #e0ddd5;border-radius:14px;padding:1rem 1.25rem;transition:border-color .15s}
+.stat:hover{border-color:#F5A623}
+.stat-num{font-size:28px;font-weight:700}
+.stat-label{font-size:12px;color:#999;margin-top:2px;font-weight:500}
+.toolbar{display:flex;gap:6px;margin-bottom:1rem;flex-wrap:wrap}
+.filter-btn{padding:6px 14px;font-size:12px;border:1.5px solid #d0cdc5;border-radius:99px;cursor:pointer;background:#fff;color:#999;font-family:inherit;font-weight:500;transition:all .15s}
+.filter-btn.active{background:#1a1a1a;color:#fff;border-color:#1a1a1a}
+.sol-card{background:#fff;border-radius:14px;margin-bottom:12px;border:1.5px solid #e0ddd5;border-left:5px solid #ccc;overflow:hidden;transition:box-shadow .2s}
+.sol-card:hover{box-shadow:0 2px 12px rgba(0,0,0,.07)}
+.sol-card.prio-Normal{border-left-color:#3b6d11}
+.sol-card.prio-Alta{border-left-color:#c0392b}
+.sol-card.prio-Urgente{border-left-color:#d4850b}
+.sol-body{padding:1rem 1.25rem}
+.sol-top{display:flex;justify-content:space-between;align-items:flex-start;gap:8px;margin-bottom:6px}
+.sol-title{font-size:14px;font-weight:600;color:#1a1a1a}
+.sol-quien{font-size:12px;color:#999;margin-top:2px}
+.sol-desc{font-size:13px;color:#555;line-height:1.5;margin-top:6px}
+.badge{display:inline-block;font-size:11px;padding:3px 10px;border-radius:99px;font-weight:600}
+.badge.pendiente{background:#faeeda;color:#854f0b}
+.badge.en-proceso{background:#e6f1fb;color:#185fa5}
+.badge.resuelto{background:#eaf3de;color:#3b6d11}
+.badge.super{background:#EEEDFE;color:#534AB7}
+.badge.admin{background:#E6F1FB;color:#185FA5}
+.prio-badge{display:inline-block;font-size:10px;padding:2px 8px;border-radius:99px;font-weight:600}
+.prio-badge.Normal{background:#eaf3de;color:#3b6d11}
+.prio-badge.Alta{background:#fcebeb;color:#a32d2d}
+.prio-badge.Urgente{background:#faeeda;color:#854f0b}
+.sol-footer{display:flex;justify-content:space-between;align-items:center;padding:10px 1.25rem;background:#faf9f6;border-top:1px solid #f0ede5;gap:8px;flex-wrap:wrap}
+.sol-meta{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.sol-fecha{font-size:11px;color:#bbb}
+.assigned-tag{font-size:11px;color:#185fa5;background:#e6f1fb;padding:2px 8px;border-radius:99px;font-weight:500}
+.no-assigned{font-size:11px;color:#ccc}
+.sol-actions{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+.prio-sel{font-size:11px;padding:4px 8px;border-radius:8px;border:1.5px solid #d0cdc5;background:#fff;color:#1a1a1a;font-family:inherit;cursor:pointer}
+.prio-sel.Normal{background:#eaf3de;color:#3b6d11;border-color:#c0dd97}
+.prio-sel.Alta{background:#fcebeb;color:#a32d2d;border-color:#f7c1c1}
+.prio-sel.Urgente{background:#faeeda;color:#854f0b;border-color:#fac775}
+.assign-sel{font-size:11px;padding:4px 8px;border-radius:8px;border:1.5px solid #d0cdc5;background:#fff;color:#1a1a1a;font-family:inherit;cursor:pointer}
+.btn-cambiar{padding:6px 16px;font-size:12px;border:none;border-radius:8px;cursor:pointer;background:#1a1a1a;color:#fff;font-family:inherit;font-weight:600;transition:all .15s}
+.btn-cambiar:hover{background:#333}
+.empty{text-align:center;padding:3rem 1rem;color:#bbb;font-size:14px}
+.com-section{border-top:1px solid #f0ede5}
+.toggle-com{width:100%;padding:9px 1.25rem;font-size:12px;color:#999;cursor:pointer;background:none;border:none;font-family:inherit;text-align:left;display:flex;align-items:center;gap:6px;font-weight:500;transition:all .15s}
+.toggle-com:hover{color:#1a1a1a;background:#faf9f6}
+.t-arrow{transition:transform .2s;display:inline-block;font-size:10px;color:#bbb}
+.toggle-com.open .t-arrow{transform:rotate(90deg)}
+.com-body{padding:10px 1.25rem 1.25rem;background:#faf9f6;display:none}
+.com-body.open{display:block}
+.com-list{display:flex;flex-direction:column;gap:8px;margin-bottom:12px}
+.com-item{background:#fff;border:1.5px solid #edeae2;border-radius:10px;padding:10px 14px}
+.com-item.com-r{background:#f0faf0;border-color:#c0dd97}
+.com-hd{display:flex;align-items:center;gap:6px;margin-bottom:4px;flex-wrap:wrap}
+.com-autor{font-size:12px;font-weight:600}
+.com-rol{font-size:10px;padding:1px 6px;border-radius:99px;font-weight:600}
+.com-rol.superadmin{background:#EEEDFE;color:#534AB7}
+.com-rol.admin{background:#E6F1FB;color:#185FA5}
+.com-est{font-size:10px;color:#bbb}
+.com-fecha{font-size:10px;color:#ccc;margin-left:auto}
+.com-texto{font-size:13px;color:#444;line-height:1.5}
+.com-row{display:flex;gap:8px;align-items:flex-end}
+.com-ta{flex:1;padding:8px 10px;font-size:13px;border:1.5px solid #d0cdc5;border-radius:10px;background:#fff;color:#1a1a1a;font-family:inherit;resize:none;height:60px;transition:border-color .2s}
+.com-ta:focus{outline:none;border-color:#F5A623}
+.com-send{padding:0 18px;font-size:13px;border:none;border-radius:10px;cursor:pointer;background:#F5A623;color:#1a1a1a;font-family:inherit;font-weight:700;height:60px;white-space:nowrap;transition:all .15s;letter-spacing:.3px}
+.com-send:hover{background:#e09a10}
+.user-table{width:100%;border-collapse:collapse;font-size:14px}
+.user-table th{text-align:left;font-size:12px;color:#999;font-weight:600;padding:8px 12px;border-bottom:1.5px solid #e0ddd5}
+.user-table td{padding:10px 12px;border-bottom:1px solid #f0ede5;vertical-align:middle}
+.user-table tr:last-child td{border-bottom:none}
+.add-row{display:grid;grid-template-columns:1fr 1fr 1fr auto;gap:8px;align-items:end}
+.config-box{background:#faf9f6;border-radius:14px;padding:1.25rem;margin-bottom:1.5rem;border:1px solid #e0ddd5}
+.config-box h3{font-size:14px;font-weight:600;margin-bottom:10px}
+.step{display:flex;gap:10px;margin-bottom:10px;font-size:13px;color:#555;align-items:flex-start}
+.step-num{min-width:22px;height:22px;border-radius:50%;background:#F5A623;color:#fff;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;flex-shrink:0}
+code{background:#fff;border:1px solid #d0cdc5;padding:1px 6px;border-radius:4px;font-family:monospace;font-size:12px}
+hr.div{border:none;border-top:1px solid #e0ddd5;margin:1.5rem 0}
+a{color:#185fa5}
+.cal-wrap{background:#fff;border:1.5px solid #e0ddd5;border-radius:14px;overflow:hidden}
+.cal-header{display:flex;align-items:center;justify-content:space-between;padding:1rem 1.25rem;border-bottom:1px solid #e0ddd5}
+.cal-title{font-size:16px;font-weight:600}
+.cal-nav{display:flex;gap:6px}
+.cal-btn{padding:5px 14px;font-size:12px;border:1.5px solid #d0cdc5;border-radius:8px;cursor:pointer;background:#fff;color:#1a1a1a;font-family:inherit;font-weight:500;transition:all .15s}
+.cal-btn:hover{background:#f5f4f1}
+.cal-grid{display:grid;grid-template-columns:repeat(7,minmax(0,1fr))}
+.cal-dn{text-align:center;font-size:11px;font-weight:600;color:#999;padding:.6rem 0;border-bottom:1px solid #e0ddd5;background:#faf9f6}
+.cal-cell{min-height:90px;border-right:1px solid #f0ede5;border-bottom:1px solid #f0ede5;padding:5px;vertical-align:top}
+.cal-cell:nth-child(7n){border-right:none}
+.cal-cell.oth{background:#faf9f6}
+.cal-cell.tod{background:#fffbf2}
+.cal-n{font-size:11px;font-weight:600;color:#bbb;margin-bottom:3px;display:block}
+.cal-cell.tod .cal-n{background:#F5A623;color:#fff;width:22px;height:22px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-size:10px}
+.cal-ev{font-size:10px;padding:2px 5px;border-radius:4px;margin-bottom:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;border-left:3px solid;font-weight:500}
+.cal-ev.Normal{background:#eaf3de;color:#3b6d11;border-left-color:#3b6d11}
+.cal-ev.Alta{background:#fcebeb;color:#a32d2d;border-left-color:#a32d2d}
+.cal-ev.Urgente{background:#faeeda;color:#854f0b;border-left-color:#854f0b}
+.cal-ev.done{opacity:.4}
+.cal-more{font-size:10px;color:#bbb;padding:1px 4px}
+    /* ── CALENDARIO VEHÍCULOS SEMANA ── */
+    .cal-veh-tabla{display:grid;grid-template-columns:80px repeat(7,1fr);gap:0;background:#fff}
+    .cal-veh-header{display:contents}
+    .cal-veh-head-cell{padding:12px 10px;font-weight:600;font-size:12px;text-align:center;color:#999;border-bottom:2px solid #e0ddd5;border-right:1px solid #e0ddd5}
+    .cal-veh-head-cell:first-child{border-right:2px solid #e0ddd5}
+    .cal-veh-head-cell:last-child{border-right:none}
+    .cal-veh-name{display:contents}
+    .cal-veh-name-cell{padding:12px 10px;font-weight:600;font-size:13px;color:#1a1a1a;border-bottom:1px solid #e0ddd5;border-right:2px solid #e0ddd5;background:#faf9f6}
+    .cal-veh-row{display:contents}
+    .cal-veh-cell{min-height:60px;border-right:1px solid #e0ddd5;border-bottom:1px solid #e0ddd5;padding:6px;position:relative;background:#fff}
+    .cal-veh-cell:last-child{border-right:none}
+    .cal-veh-tarea{padding:6px 8px;border-radius:8px;font-size:11px;margin-bottom:4px;cursor:pointer;border-left:4px solid;font-weight:500;line-height:1.3;transition:all .15s}
+    .cal-veh-tarea.Normal{background:#eaf3de;color:#3b6d11;border-left-color:#3b6d11}
+    .cal-veh-tarea.Alta{background:#fff3e0;color:#e65100;border-left-color:#ff9500}
+    .cal-veh-tarea.Urgente{background:#ffebee;color:#c62828;border-left-color:#d32f2f}
+    .cal-veh-tarea.resuelto{opacity:.5;text-decoration:line-through}
+    .cal-veh-tarea:hover{box-shadow:0 2px 8px rgba(0,0,0,.12)}
+    .cal-veh-add{font-size:18px;cursor:pointer;color:#bbb;text-align:center;padding:20px 0;transition:all .15s}
+    .cal-veh-add:hover{color:#1a1a1a;background:#f5f4f1}
+
+    /* ── ESTIMACIÓN ── */
+    .est-veh{background:#fff;border:1.5px solid #e0ddd5;border-radius:14px;padding:1.5rem;margin-bottom:1.5rem;border-top:5px solid #F5A623}
+    .est-veh-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;padding-bottom:1rem;border-bottom:1px solid #e0ddd5}
+    .est-veh-nombre{font-size:16px;font-weight:700;color:#1a1a1a}
+    .est-veh-total{font-size:14px;font-weight:600;color:#F5A623;background:#fffbf2;padding:6px 12px;border-radius:99px}
+    .est-tarea{display:flex;justify-content:space-between;align-items:center;padding:10px;background:#faf9f6;border-radius:10px;margin-bottom:8px;font-size:13px}
+    .est-tarea-hora{font-weight:600;color:#1a1a1a;min-width:120px}
+    .est-tarea-nombre{flex:1;margin:0 12px;color:#555}
+    .est-tarea-duracion{background:#e6f1fb;color:#185fa5;padding:2px 8px;border-radius:6px;font-weight:500;min-width:90px;text-align:center}
+    .est-tarea-chofer{color:#999;font-size:12px;margin-left:auto;margin-right:10px}
+
+    /* ── PESTAÑAS CALENDARIO ── */
+    .cal-tabs{display:flex;gap:8px;padding-bottom:0}
+    .cal-tab{padding:10px 16px;font-size:13px;font-weight:600;color:#999;background:none;border:none;cursor:pointer;border-bottom:3px solid transparent;transition:all .15s}
+    .cal-tab:hover{color:#1a1a1a}
+    .cal-tab.active{color:#F5A623;border-bottom-color:#F5A623}
+    .cal-tab-content{display:none}
+    .cal-tab-content.active{display:block}
+
+    /* ── TARJETAS COMPACTAS KANBAN ── */
+    .tarjeta-veh-grupo{background:#fff;border:1.5px solid #e0ddd5;border-radius:14px;padding:1.5rem;margin-bottom:1.5rem;border-top:5px solid #F5A623}
+    .tarjeta-veh-header{font-size:16px;font-weight:700;color:#1a1a1a;margin-bottom:1.5rem;padding-bottom:1rem;border-bottom:1px solid #e0ddd5}
+    .tarjeta-veh-placa{font-size:12px;color:#999;margin-top:3px}
+    .tarjeta-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:12px}
+    .tarjeta-actividad{background:#faf9f6;border:1.5px solid #e0ddd5;border-radius:12px;padding:12px;cursor:pointer;transition:all .2s;border-left:4px solid}
+    .tarjeta-actividad:hover{box-shadow:0 4px 12px rgba(0,0,0,.1);transform:translateY(-2px)}
+    .tarjeta-actividad.Normal{border-left-color:#3b6d11;background:#fafbf8}
+    .tarjeta-actividad.Alta{border-left-color:#ff9500;background:#fffbf5}
+    .tarjeta-actividad.Urgente{border-left-color:#d32f2f;background:#fff5f5}
+    .tarjeta-actividad.resuelto{opacity:.6;border-left-color:#ccc}
+    .tarjeta-titulo{font-size:13px;font-weight:700;color:#1a1a1a;margin-bottom:6px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .tarjeta-tiempo{font-size:12px;color:#555;font-weight:600;margin-bottom:8px}
+    .tarjeta-duracion{display:inline-block;font-size:11px;background:#fff;padding:3px 8px;border-radius:6px;color:#666;margin-bottom:8px}
+    .tarjeta-prioridad{display:inline-block;font-size:10px;font-weight:700;padding:2px 6px;border-radius:4px;margin-left:4px}
+    .tarjeta-prioridad.Normal{background:#3b6d11;color:#fff}
+    .tarjeta-prioridad.Alta{background:#ff9500;color:#fff}
+    .tarjeta-prioridad.Urgente{background:#d32f2f;color:#fff}
+    .tarjeta-estado{display:block;font-size:11px;color:#666;margin-bottom:8px}
+    .tarjeta-botones{display:flex;gap:4px;flex-wrap:wrap}
+    .tarjeta-btn{padding:4px 8px;font-size:10px;border:none;border-radius:4px;cursor:pointer;background:#e0ddd5;color:#1a1a1a;font-weight:500;transition:all .15s;font-family:inherit}
+    .tarjeta-btn:hover{background:#d0cdc5}
+    .tarjeta-btn.estado{background:#F5A623;color:#1a1a1a}
+    .tarjeta-btn.estado:hover{background:#e09a10}
+    .tarjeta-btn.danger{background:#fcebeb;color:#a32d2d}
+    .tarjeta-btn.danger:hover{background:#f7c1c1}
+    .tarjeta-vacio{text-align:center;padding:2rem;color:#bbb;font-size:13px}
+    .est-vacio{text-align:center;padding:2rem;color:#bbb;font-size:14px}
+
+.cal-legend{display:flex;gap:16px;padding:.75rem 1.25rem;border-top:1px solid #e0ddd5;background:#faf9f6;flex-wrap:wrap}
+.cal-li{display:flex;align-items:center;gap:5px;font-size:12px;color:#777;font-weight:500}
+.cal-dot{width:10px;height:10px;border-radius:50%}
+@media(max-width:600px){.sidebar{display:none}.content{padding:1rem}.add-row{grid-template-columns:1fr 1fr}.two-col{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+
+<div id="vista-publica">
+  <div class="pub-hero">
+    <div class="hero-brand">
+      <img src="data:image/png;base64,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" alt="DSG" class="hero-icon">
+      <div class="hero-text"><span class="hero-title">DSG DESIGN</span><span class="hero-sub">Ingenieria Industrial</span></div>
+    </div>
+    <div class="hero-bar"></div>
+    <div class="secret-trigger" id="secret-trigger" onclick="secretClick()"></div>
+  </div>
+  <div class="pub-body"><div class="pub-card">
+    <div id="form-publico">
+      <div id="alert-pub"></div>
+      <div class="two-col">
+        <div class="field"><label>Nombre <span class="req">*</span></label><input type="text" id="pub-nombre" placeholder="Tu nombre"><div class="err-msg" id="err-nombre">Ingresa tu nombre</div></div>
+        <div class="field"><label>Apellido <span class="req">*</span></label><input type="text" id="pub-apellido" placeholder="Tu apellido"><div class="err-msg" id="err-apellido">Ingresa tu apellido</div></div>
+      </div>
+      <div class="field"><label>Tipo de solicitud <span class="req">*</span></label>
+        <select id="pub-tipo"><option value="">Selecciona una opcion...</option><option>Solicitud de Camioneta</option><option>Solicitud de Traslado</option><option>Solicitud de Retiro</option><option>Solicitud de Tramite</option><option>Solicitud de Despacho</option><option>Solicitud Soporte Tecnico</option><option>Solicitud de Correo Corporativo</option><option>Solicitud de Cuenta IConstruye</option></select>
+        <div class="err-msg" id="err-tipo">Selecciona un tipo</div></div>
+      <div class="field"><label>Descripcion <span class="req">*</span></label><textarea id="pub-desc" placeholder="Describe lo que necesitas..."></textarea><div class="err-msg" id="err-desc">Ingresa una descripcion</div></div>
+      <div class="field"><label>Prioridad</label><select id="pub-prio"><option value="Normal">Normal</option><option value="Alta">Alta</option><option value="Urgente">Urgente</option></select></div>
+      <div class="btn-row" style="margin-top:1.5rem"><button class="btn primary" style="width:100%;padding:12px;font-size:15px" onclick="enviarPublica()">Enviar solicitud</button></div>
+    </div>
+    <div class="success-state" id="exito-pub"><div class="check">&#x2705;</div><h3>Solicitud enviada</h3><p>Recibimos tu solicitud y la estamos revisando.</p><button class="btn primary" onclick="resetForm()">Enviar otra</button></div>
+  </div></div>
+</div>
+
+<div class="modal-overlay" id="modal-login"><div class="modal-card">
+  <button class="modal-close" onclick="cerrarModal()">&#x2715;</button>
+  <h2>Acceso interno</h2><p>Solo para administradores.</p>
+  <div id="alert-modal"></div>
+  <div class="field"><label>Usuario</label><input type="text" id="m-user" placeholder="usuario" autocomplete="username"></div>
+  <div class="field"><label>Contrasena</label><input type="password" id="m-pass" placeholder="********" autocomplete="current-password"></div>
+  <div class="btn-row"><button class="btn" onclick="cerrarModal()">Cancelar</button><button class="btn primary" onclick="iniciarSesion()">Entrar</button></div>
+</div></div>
+
+<div class="modal-overlay" id="modal-tarea-vehiculo"><div class="modal-card wide">
+  <button class="modal-close" onclick="cerrarModalTareaVehiculo()">✕</button>
+  <h2>Nueva tarea en vehículo</h2>
+  <p>Asigna una solicitud a un vehículo con duración específica.</p>
+  <div class="modal-field">
+    <span class="modal-label">Solicitud</span>
+    <select id="tarea-solicitud" style="width:100%;padding:10px 12px;border:1.5px solid #d0cdc5;border-radius:10px;font-size:14px">
+      <option value="">Selecciona solicitud...</option>
+    </select>
+  </div>
+  <div class="modal-field">
+    <span class="modal-label">Vehículo</span>
+    <div style="padding:10px;background:#faf9f6;border-radius:10px;font-weight:600" id="tarea-vehiculo-info"></div>
+  </div>
+  <div class="modal-field">
+    <span class="modal-label">Fecha y hora de inicio</span>
+    <input type="datetime-local" id="tarea-inicio" style="width:100%;padding:10px 12px;border:1.5px solid #d0cdc5;border-radius:10px;font-size:14px">
+  </div>
+  <div class="modal-field">
+    <span class="modal-label">Duración</span>
+    <select id="tarea-duracion" style="width:100%;padding:10px 12px;border:1.5px solid #d0cdc5;border-radius:10px;font-size:14px">
+      <option value="00:30">30 minutos</option>
+      <option value="00:45">45 minutos</option>
+      <option value="01:00" selected>1 hora</option>
+      <option value="01:30">1 hora 30 minutos</option>
+      <option value="02:00">2 horas</option>
+      <option value="02:30">2 horas 30 minutos</option>
+      <option value="03:00">3 horas</option>
+    </select>
+  </div>
+  <div class="modal-field">
+    <span class="modal-label">Prioridad</span>
+    <select id="tarea-prioridad" style="width:100%;padding:10px 12px;border:1.5px solid #d0cdc5;border-radius:10px;font-size:14px">
+      <option value="Normal">Normal (Verde)</option>
+      <option value="Alta">Alta (Naranja)</option>
+      <option value="Urgente">Urgente (Rojo)</option>
+    </select>
+  </div>
+  <div class="btn-row">
+    <button class="btn" onclick="cerrarModalTareaVehiculo()">Cancelar</button>
+    <button class="btn primary" onclick="confirmarCrearTareaVehiculo()">Crear tarea</button>
+  </div>
+</div></div>
+<div class="modal-overlay" id="modal-agendar-vehiculo"><div class="modal-card wide">
+  <button class="modal-close" onclick="cerrarModalAgendarVehiculo()">✕</button>
+  <h2>Agendar en camioneta</h2>
+  <p>Asigna la solicitud a un vehículo con horario.</p>
+  <div class="modal-field">
+    <span class="modal-label">Solicitud</span>
+    <div id="agendar-solicitud-info" style="font-size:13px;color:#555;padding:10px;background:#faf9f6;border-radius:10px;margin-bottom:10px"></div>
+  </div>
+  <div class="modal-field">
+    <span class="modal-label">Vehículo</span>
+    <select id="agendar-vehiculo">
+      <option value="">Selecciona vehículo...</option>
+    </select>
+  </div>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+    <div class="modal-field">
+      <span class="modal-label">Hora inicio</span>
+      <input type="time" id="agendar-hora-inicio" value="08:00">
+    </div>
+    <div class="modal-field">
+      <span class="modal-label">Hora fin</span>
+      <input type="time" id="agendar-hora-fin" value="09:00">
+    </div>
+  </div>
+  <div class="btn-row">
+    <button class="btn" onclick="cerrarModalAgendarVehiculo()">Cancelar</button>
+    <button class="btn primary" onclick="confirmarAgendarVehiculo()">Agendar</button>
+  </div>
+</div></div>
+<div class="modal-overlay" id="modal-estado"><div class="modal-card wide">
+  <button class="modal-close" onclick="cerrarModalEstado()">&#x2715;</button>
+  <h2>Cambiar estado</h2><p>Puedes agregar un comentario interno.</p>
+  <div class="field"><label>Nuevo estado</label><select id="modal-nuevo-estado" onchange="actualizarLabelCom()"><option>Pendiente</option><option>En proceso</option><option>Resuelto</option></select></div>
+  <div class="field"><label id="modal-com-label">Comentario interno <span style="color:#aaa;font-weight:400">(opcional)</span></label><textarea id="modal-comentario" placeholder="Visible solo para admins..."></textarea></div>
+  <div class="btn-row"><button class="btn" onclick="cerrarModalEstado()">Cancelar</button><button class="btn primary" onclick="confirmarEstado()">Guardar cambio</button></div>
+</div></div>
+
+<div id="vista-admin">
+  <div class="topbar">
+    <div class="topbar-brand"><img src="data:image/png;base64,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" alt="DSG" style="height:34px;border-radius:4px"><span style="color:#fff;font-size:15px;font-weight:700;letter-spacing:.5px">DSG DESIGN</span></div>
+    <div class="topbar-right"><span class="user-chip" id="topbar-user"></span><span class="badge" id="topbar-role"></span><button class="btn sm" style="background:#fff;color:#1a1a1a" onclick="cerrarSesion()">Salir</button></div>
+  </div>
+  <div class="main">
+    <div class="sidebar" id="sidebar"></div>
+    <div class="content">
+      <div class="page" id="page-dashboard"><div class="page-title">Dashboard</div><div class="stats" id="stats-dash"></div><div class="toolbar" id="tb-dash"><button class="filter-btn active" onclick="filtrarDash('todos',this)">Todas</button><button class="filter-btn" onclick="filtrarDash('Pendiente',this)">Pendientes</button><button class="filter-btn" onclick="filtrarDash('En proceso',this)">En proceso</button><button class="filter-btn" onclick="filtrarDash('Resuelto',this)">Resueltas</button></div><div id="lista-dash"></div></div>
+      <div class="page" id="page-calendario">
+        <div class="page-title">Calendario de Vehículos</div>
+        
+        <div class="cal-tabs" style="display:flex;gap:8px;margin-bottom:1.5rem;border-bottom:2px solid #e0ddd5">
+          <button class="cal-tab active" onclick="cambiarTabCalendario('equipos',this)">🚚 Equipos</button>
+          <button class="cal-tab" onclick="cambiarTabCalendario('operadores',this)">👥 Operadores</button>
+          <button class="cal-tab" onclick="cambiarTabCalendario('mixta',this)">📋 Vista Mixta</button>
+          <button class="cal-tab" onclick="cambiarTabCalendario('estimacion',this)">📊 Estimación</button>
+        </div>
+
+        <!-- TAB 1: VISTA SEMANAL - TARJETAS COMPACTAS -->
+        <div id="cal-tab-semana" class="cal-tab-content active">
+          <div style="display:flex;gap:1rem;margin-bottom:1.5rem;align-items:flex-end">
+            <div class="field" style="margin:0;flex:1">
+              <label>Selecciona fecha</label>
+              <input type="date" id="cal-fecha-tarjetas">
+            </div>
+            <button class="btn primary" onclick="renderCalendarioEquipos()">Ver equipos</button>
+          </div>
+          <div id="cal-equipos-view"></div>
+          <div class="cal-legend" style="margin-top:1rem">
+            <div class="cal-li"><div class="cal-dot" style="background:#3b6d11"></div>Normal</div>
+            <div class="cal-li"><div class="cal-dot" style="background:#ff9500"></div>Alta</div>
+            <div class="cal-li"><div class="cal-dot" style="background:#d32f2f"></div>Urgente</div>
+            <div class="cal-li"><div class="cal-dot" style="background:#ccc"></div>Resuelto</div>
+          </div>
+        </div>
+        
+        <div id="cal-tab-operadores" class="cal-tab-content" style="display:none">
+          <div style="display:flex;gap:1rem;margin-bottom:1.5rem;align-items:flex-end">
+            <div class="field" style="margin:0;flex:1">
+              <label>Selecciona fecha</label>
+              <input type="date" id="cal-fecha-operadores">
+            </div>
+            <button class="btn primary" onclick="renderCalendarioOperadores()">Ver operadores</button>
+          </div>
+          <div id="cal-operadores-view"></div>
+          <div class="cal-legend" style="margin-top:1rem">
+            <div class="cal-li"><div class="cal-dot" style="background:#3b6d11"></div>Normal</div>
+            <div class="cal-li"><div class="cal-dot" style="background:#ff9500"></div>Alta</div>
+            <div class="cal-li"><div class="cal-dot" style="background:#d32f2f"></div>Urgente</div>
+            <div class="cal-li"><div class="cal-dot" style="background:#ccc"></div>Resuelto</div>
+          </div>
+        </div>
+        
+        <div id="cal-tab-mixta" class="cal-tab-content" style="display:none">
+          <div style="display:flex;gap:1rem;margin-bottom:1.5rem;align-items:flex-end">
+            <div class="field" style="margin:0;flex:1">
+              <label>Selecciona fecha</label>
+              <input type="date" id="cal-fecha-mixta">
+            </div>
+            <button class="btn primary" onclick="renderCalendarioMixta()">Ver mixta</button>
+          </div>
+          <div id="cal-mixta-view"></div>
+          <div class="cal-legend" style="margin-top:1rem">
+            <div class="cal-li"><div class="cal-dot" style="background:#3b6d11"></div>Normal</div>
+            <div class="cal-li"><div class="cal-dot" style="background:#ff9500"></div>Alta</div>
+            <div class="cal-li"><div class="cal-dot" style="background:#d32f2f"></div>Urgente</div>
+            <div class="cal-li"><div class="cal-dot" style="background:#ccc"></div>Resuelto</div>
+          </div>
+        </div>
+
+        <!-- TAB 2: ESTIMACIÓN -->
+        <div id="cal-tab-estimacion" class="cal-tab-content" style="display:none">
+          <div style="display:flex;gap:1rem;margin-bottom:1.5rem;align-items:flex-end">
+            <div class="field" style="margin:0;flex:0.3">
+              <label>Selecciona fecha</label>
+              <input type="date" id="est-fecha">
+            </div>
+            <button class="btn primary" onclick="renderEstimacion()">Ver estimación</button>
+          </div>
+          <div id="estimacion-contenido"></div>
+        </div>
+      </div>
+      <div class="page" id="page-asignadas"><div class="page-title">Mis asignaciones</div><div class="toolbar" id="tb-asig"><button class="filter-btn active" onclick="filtrarAsig('todos',this)">Todas</button><button class="filter-btn" onclick="filtrarAsig('Pendiente',this)">Pendientes</button><button class="filter-btn" onclick="filtrarAsig('En proceso',this)">En proceso</button><button class="filter-btn" onclick="filtrarAsig('Resuelto',this)">Resueltas</button></div><div id="lista-asig"></div></div>
+      <div class="page" id="page-usuarios"><div class="page-title">Usuarios</div><div class="config-box"><h3>Agregar usuario</h3><div class="add-row"><div class="field" style="margin:0"><label>Usuario</label><input type="text" id="nu-user" placeholder="nombre"></div><div class="field" style="margin:0"><label>Contrasena</label><input type="password" id="nu-pass" placeholder="******"></div><div class="field" style="margin:0"><label>Rol</label><select id="nu-rol"><option value="admin">Admin</option><option value="superadmin">Superadmin</option></select></div><button class="btn primary" style="align-self:end" onclick="agregarUsuario()">Agregar</button></div><div id="alert-usr" style="margin-top:.75rem"></div></div><table class="user-table"><thead><tr><th>Usuario</th><th>Rol</th><th>Asignadas</th><th></th></tr></thead><tbody id="tbody-usr"></tbody></table></div>
+            <div class="page" id="page-vehiculos"><div class="page-title">Flota de Vehículos</div><div class="config-box"><h3>Agregar vehículo</h3><div class="add-row" style="grid-template-columns:1fr 1fr 1fr 1fr auto"><div class="field" style="margin:0"><label>Nombre</label><input type="text" id="veh-nombre" placeholder="Camioneta 01"></div><div class="field" style="margin:0"><label>Tipo</label><select id="veh-tipo"><option value="camioneta">Camioneta</option><option value="camion">Camión</option></select></div><div class="field" style="margin:0"><label>Placa</label><input type="text" id="veh-placa" placeholder="ABC-1234"></div><div class="field" style="margin:0"></div><button class="btn primary" style="align-self:end" onclick="agregarVehiculo()">Agregar</button></div><div id="alert-veh" style="margin-top:.75rem"></div></div><table class="user-table"><thead><tr><th>Nombre</th><th>Tipo</th><th>Placa</th><th>Estado</th><th></th></tr></thead><tbody id="tbody-veh"></tbody></table></div>
+
+            <div class="page" id="page-operadores"><div class="page-title">Operadores / Choferes</div><div class="config-box"><h3>Agregar operador</h3><div class="add-row" style="grid-template-columns:1fr 1fr 1fr 1fr auto"><div class="field" style="margin:0"><label>Nombre</label><input type="text" id="op-nombre" placeholder="Juan García"></div><div class="field" style="margin:0"><label>Teléfono</label><input type="text" id="op-telefono" placeholder="+56 9 1234-5678"></div><div class="field" style="margin:0"><label>Licencia</label><select id="op-licencia"><option value="Clase B">Clase B</option><option value="Clase A">Clase A</option></select></div><div class="field" style="margin:0"><label>Observaciones</label><input type="text" id="op-obs" placeholder="Experiencia, notas..."></div><button class="btn primary" style="align-self:end" onclick="agregarOperador()">Agregar</button></div><div id="alert-op" style="margin-top:.75rem"></div></div><table class="user-table"><thead><tr><th>Nombre</th><th>Teléfono</th><th>Licencia</th><th>Estado</th><th></th></tr></thead><tbody id="tbody-op"></tbody></table></div>
+
+<div class="page" id="page-actividades"><div class="page-title">Registro de Actividades</div><div id="actividades-list"></div></div>
+      <div class="page" id="page-wa"><div class="page-title">WhatsApp</div><div class="config-box"><h3>Como activar CallMeBot</h3><div class="step"><div class="step-num">1</div><span>Agrega <code>+34 644 59 21 68</code> a WhatsApp</span></div><div class="step"><div class="step-num">2</div><span>Envia: <code>I allow callmebot to send me messages</code></span></div><div class="step"><div class="step-num">3</div><span>El bot responde con tu <b>API key</b></span></div><div class="step"><div class="step-num">4</div><span>Ingresa numero y API key abajo</span></div></div><div class="field"><label>Numero (con codigo pais, sin +)</label><input type="text" id="wa-phone" placeholder="56912345678"></div><div class="field"><label>API Key</label><input type="text" id="wa-apikey" placeholder="123456"></div><div id="alert-wa"></div><div class="btn-row"><button class="btn" onclick="probarWA()">Enviar prueba</button><button class="btn primary" onclick="guardarWA()">Guardar</button></div><hr class="div"><p style="font-size:12px;color:#aaa"><a href="https://www.callmebot.com/blog/free-api-whatsapp-messages/" target="_blank">callmebot.com</a></p></div>
+    </div>
+  </div>
+</div>
+
+<script>
+function api(url,method,body){
+  if(!method)method='GET';
+  var opts={method:method,headers:{'Content-Type':'application/json'},credentials:'same-origin'};
+  if(body)opts.body=JSON.stringify(body);
+  return fetch(url,opts).then(function(r){return r.json();});
+}
+
+var sesion=null,todasSols=[],solsAsig=[],adminsCache=null;
+var vehiculosCache=[],operadoresCache=[],ACTIVIDADES=[];
+var filtDash='todos',filtAsig='todos';
+var calY,calM;
+
+/* ── Secret trigger ── */
+var sc=0,st=null;
+function secretClick(){sc++;clearTimeout(st);st=setTimeout(function(){sc=0;},1500);if(sc>=3){sc=0;abrirModal();}}
+function abrirModal(){document.getElementById('modal-login').classList.add('active');document.getElementById('m-user').focus();}
+function cerrarModal(){document.getElementById('modal-login').classList.remove('active');document.getElementById('alert-modal').innerHTML='';document.getElementById('m-user').value='';document.getElementById('m-pass').value='';}
+document.getElementById('m-pass').addEventListener('keydown',function(e){if(e.key==='Enter')iniciarSesion();});
+
+/* ── Auth ── */
+function iniciarSesion(){
+  var u=document.getElementById('m-user').value.trim(),p=document.getElementById('m-pass').value;
+  api('/api/login','POST',{username:u,password:p}).then(function(d){
+    if(!d.ok){document.getElementById('alert-modal').innerHTML='<div class="alert error">'+d.error+'</div>';return;}
+    sesion=d.user;cerrarModal();
+    document.getElementById('vista-publica').style.display='none';
+    document.getElementById('vista-admin').classList.add('active');
+    cargarAdmin();
+  });
+}
+function cerrarSesion(){
+  api('/api/logout','POST').then(function(){
+    sesion=null;todasSols=[];solsAsig=[];adminsCache=null;
+    document.getElementById('vista-admin').classList.remove('active');
+    document.getElementById('vista-publica').style.display='flex';
+  });
+}
+
+/* ── Shell ── */
+function cargarAdmin(){
+  var rb=document.getElementById('topbar-role');
+  document.getElementById('topbar-user').textContent=sesion.username;
+  rb.textContent=sesion.rol;
+  rb.className='badge '+(sesion.rol==='superadmin'?'super':'admin');
+  var nav=sesion.rol==='superadmin'
+    ?[{id:'dashboard',icon:'&#x1F4CA;',label:'Dashboard'},{id:'calendario',icon:'&#x1F4C5;',label:'Calendario'},{id:'usuarios',icon:'&#x1F465;',label:'Usuarios'},{id:'vehiculos',icon:'&#x1F69B;',label:'Vehículos'},{id:'operadores',icon:'👥',label:'Operadores'},{id:'actividades',icon:'&#x1F4DD;',label:'Actividades'},{id:'wa',icon:'&#x1F4AC;',label:'WhatsApp'}]
+    :[{id:'asignadas',icon:'&#x1F4EC;',label:'Mis asignaciones'}];
+  var sb=document.getElementById('sidebar');
+  var h='';
+  for(var i=0;i<nav.length;i++){
+    h+='<div class="nav-item'+(i===0?' active':'')+'" onclick="irA(\''+nav[i].id+'\',this)"><span class="nav-icon">'+nav[i].icon+'</span>'+nav[i].label+'</div>';
+  }
+  sb.innerHTML=h;
+  if(sesion.rol==='superadmin'){
+    api('/api/wa/config').then(function(wa){
+      document.getElementById('wa-phone').value=wa.phone||'';
+      document.getElementById('wa-apikey').value=wa.apikey||'';
+    });
+  }
+  irA(nav[0].id,sb.querySelector('.nav-item'));
+}
+
+function irA(id,el){
+  var items=document.querySelectorAll('.nav-item');for(var i=0;i<items.length;i++)items[i].classList.remove('active');
+  var pages=document.querySelectorAll('.page');for(var i=0;i<pages.length;i++)pages[i].classList.remove('active');
+  if(el)el.classList.add('active');
+  var pg=document.getElementById('page-'+id);if(pg)pg.classList.add('active');
+  if(id==='dashboard')renderDashboard();
+  if(id==='calendario')renderCalendario();
+  if(id==='usuarios')renderUsuarios();
+  if(id==='asignadas')renderAsignadas();
+}
+
+/* ── Formulario publico ── */
+function enviarPublica(){
+  var nombre=document.getElementById('pub-nombre').value.trim();
+  var apellido=document.getElementById('pub-apellido').value.trim();
+  var tipo=document.getElementById('pub-tipo').value;
+  var desc=document.getElementById('pub-desc').value.trim();
+  var prio=document.getElementById('pub-prio').value;
+  var v1=vld('pub-nombre','err-nombre',nombre.length>0);
+  var v2=vld('pub-apellido','err-apellido',apellido.length>0);
+  var v3=vld('pub-tipo','err-tipo',tipo.length>0);
+  var v4=vld('pub-desc','err-desc',desc.length>0);
+  if(!v1||!v2||!v3||!v4)return;
+  api('/api/solicitudes','POST',{nombre:nombre+' '+apellido,tipo:tipo,descripcion:desc,prioridad:prio}).then(function(d){
+    if(d.ok){document.getElementById('form-publico').style.display='none';document.getElementById('exito-pub').style.display='block';document.getElementById('alert-pub').innerHTML='';}
+    else{document.getElementById('alert-pub').innerHTML='<div class="alert error">Error al enviar.</div>';}
+  });
+}
+function vld(id,eid,ok){var el=document.getElementById(id),er=document.getElementById(eid);if(ok){el.classList.remove('error');er.classList.remove('show');return true;}el.classList.add('error');er.classList.add('show');return false;}
+function resetForm(){
+  document.getElementById('form-publico').style.display='block';document.getElementById('exito-pub').style.display='none';
+  var ids=['pub-nombre','pub-apellido','pub-desc'];for(var i=0;i<ids.length;i++){document.getElementById(ids[i]).value='';document.getElementById(ids[i]).classList.remove('error');}
+  document.getElementById('pub-tipo').value='';document.getElementById('pub-tipo').classList.remove('error');document.getElementById('pub-prio').value='Normal';
+  var eids=['err-nombre','err-apellido','err-tipo','err-desc'];for(var i=0;i<eids.length;i++)document.getElementById(eids[i]).classList.remove('show');
+}
+
+/* ── Dashboard ── */
+function filtrarDash(f,btn){filtDash=f;var bs=document.querySelectorAll('#tb-dash .filter-btn');for(var i=0;i<bs.length;i++)bs[i].classList.remove('active');btn.classList.add('active');renderListaDash();}
+
+function renderDashboard(){
+  api('/api/solicitudes').then(function(sols){
+    todasSols=sols;
+    var pend=0,proc=0,res=0;
+    for(var i=0;i<sols.length;i++){if(sols[i].estado==='Pendiente')pend++;if(sols[i].estado==='En proceso')proc++;if(sols[i].estado==='Resuelto')res++;}
+    document.getElementById('stats-dash').innerHTML=
+      '<div class="stat"><div class="stat-num">'+sols.length+'</div><div class="stat-label">Total</div></div>'+
+      '<div class="stat"><div class="stat-num">'+pend+'</div><div class="stat-label">Pendientes</div></div>'+
+      '<div class="stat"><div class="stat-num">'+proc+'</div><div class="stat-label">En proceso</div></div>'+
+      '<div class="stat"><div class="stat-num">'+res+'</div><div class="stat-label">Resueltas</div></div>';
+    renderListaDash();
+  });
+}
+
+function renderListaDash(){
+  var items=[];
+  for(var i=0;i<todasSols.length;i++){if(filtDash==='todos'||todasSols[i].estado===filtDash)items.push(todasSols[i]);}
+  var cont=document.getElementById('lista-dash');
+  if(!items.length){cont.innerHTML='<div class="empty">No hay solicitudes.</div>';return;}
+  var h='';for(var i=0;i<items.length;i++)h+=tarjeta(items[i],'superadmin');
+  cont.innerHTML=h;
+}
+
+/* ── Asignadas ── */
+function filtrarAsig(f,btn){filtAsig=f;var bs=document.querySelectorAll('#tb-asig .filter-btn');for(var i=0;i<bs.length;i++)bs[i].classList.remove('active');btn.classList.add('active');renderListaAsig();}
+function renderAsignadas(){api('/api/solicitudes').then(function(sols){solsAsig=sols;renderListaAsig();});}
+function renderListaAsig(){
+  var items=[];for(var i=0;i<solsAsig.length;i++){if(filtAsig==='todos'||solsAsig[i].estado===filtAsig)items.push(solsAsig[i]);}
+  var cont=document.getElementById('lista-asig');
+  if(!items.length){cont.innerHTML='<div class="empty">No tienes asignaciones.</div>';return;}
+  var h='';for(var i=0;i<items.length;i++)h+=tarjeta(items[i],'admin');
+  cont.innerHTML=h;
+}
+
+/* ── Tarjeta solicitud ── */
+function tarjeta(s,rol){
+  var cls=s.estado==='Pendiente'?'pendiente':s.estado==='En proceso'?'en-proceso':'resuelto';
+  var prio=s.prioridad||'Normal';
+  var asig=s.asignadoA?'<span class="assigned-tag">&#8594; '+s.asignadoA+'</span>':'<span class="no-assigned">Sin asignar</span>';
+  var coms=s.comentarios||[];
+  var n=coms.length;
+
+  // Comentarios
+  var ch='';
+  for(var ci=0;ci<coms.length;ci++){
+    var c=coms[ci];
+    ch+='<div class="com-item'+(c.estadoRef==='Resuelto'?' com-r':'')+'">'+'<div class="com-hd">'+'<span class="com-autor">'+c.autor+'</span>'+'<span class="com-rol '+c.rolAutor+'">'+c.rolAutor+'</span>'+'<span class="com-est">&#8594; '+c.estadoRef+'</span>'+'<span class="com-fecha">'+c.fecha+'</span>'+'</div>'+'<div class="com-texto">'+c.texto+'</div>'+'</div>';
+  }
+
+  // Footer actions
+  var act='<div class="sol-actions">';
+  if(rol==='superadmin'){
+    act+='<select class="prio-sel '+prio+'" onchange="cambiarPrioridad('+s.id+',this.value);this.className=\'prio-sel \'+this.value">'+'<option'+(prio==='Normal'?' selected':'')+'>Normal</option>'+'<option'+(prio==='Alta'?' selected':'')+'>Alta</option>'+'<option'+(prio==='Urgente'?' selected':'')+'>Urgente</option>'+'</select>';
+    var admins=[];if(adminsCache)for(var ai=0;ai<adminsCache.length;ai++){if(adminsCache[ai].rol==='admin')admins.push(adminsCache[ai]);}
+    act+='<select class="assign-sel" onchange="asignar('+s.id+',this.value)">'+'<option value="">Sin asignar</option>';
+    for(var ai=0;ai<admins.length;ai++){act+='<option'+(s.asignadoA===admins[ai].username?' selected':'')+' value="'+admins[ai].username+'">'+admins[ai].username+'</option>';}
+    act+='</select>';
+  } else {
+    act+='<span class="prio-badge '+prio+'">'+prio+'</span>';
+  }
+  act+='<button class="btn-cambiar" onclick="abrirModalEstado('+s.id+',\''+s.estado+'\')">Cambiar estado</button>'+'</div>';
+
+  var meta='<div class="sol-meta"><span class="sol-fecha">'+s.fecha+'</span>'+asig+'</div>';
+  var toggleLabel=n>0?n+' comentario'+(n>1?'s':''):'Agregar comentario';
+  var comListHtml=n>0?'<div class="com-list">'+ch+'</div>':'';
+
+  return '<div class="sol-card prio-'+prio+'">'
+    +'<div class="sol-body">'
+      +'<div class="sol-top">'
+        +'<div><div class="sol-title">'+s.tipo+'</div><div class="sol-quien">'+(s.nombre||s.solicitante)+'</div></div>'
+        +'<span class="badge '+cls+'">'+s.estado+'</span>'
+      +'</div>'
+      +'<div class="sol-desc">'+s.descripcion+'</div>'
+    +'</div>'
+    +'<div class="sol-footer">'+meta+act+'</div>'
+    +'<div class="com-section">'
+      +'<button class="toggle-com" id="tog-'+s.id+'" onclick="toggleComs('+s.id+')">'
+        +'<span class="t-arrow">&#x25B6;</span> '+toggleLabel
+      +'</button>'
+      +'<div class="com-body" id="coms-'+s.id+'">'
+        +comListHtml
+        +'<div class="com-row">'
+          +'<textarea class="com-ta" id="cin-'+s.id+'" placeholder="Comentario interno..."></textarea>'
+          +'<button class="com-send" onclick="enviarComentario('+s.id+')">Comentar</button>'
+        +'</div>'
+      +'</div>'
+    +'</div>'
+  +'</div>';
+}
+
+function toggleComs(id){
+  var body=document.getElementById('coms-'+id);
+  var btn=document.getElementById('tog-'+id);
+  var open=body.classList.toggle('open');
+  btn.classList.toggle('open',open);
+  var s=null;
+  for(var i=0;i<todasSols.length;i++){if(todasSols[i].id===id){s=todasSols[i];break;}}
+  if(!s)for(var i=0;i<solsAsig.length;i++){if(solsAsig[i].id===id){s=solsAsig[i];break;}}
+  var n=s&&s.comentarios?s.comentarios.length:0;
+  btn.innerHTML='<span class="t-arrow">&#x25B6;</span> '+(open?(n>0?'Ocultar':'Cerrar'):(n>0?n+' comentario'+(n>1?'s':''):'Agregar comentario'));
+}
+
+/* ── Modal estado ── */
+var pendingId=null;
+function abrirModalEstado(id,estado){
+  pendingId=id;
+  document.getElementById('modal-nuevo-estado').value=estado;
+  document.getElementById('modal-comentario').value='';
+  actualizarLabelCom();
+  document.getElementById('modal-estado').classList.add('active');
+  setTimeout(function(){document.getElementById('modal-comentario').focus();},150);
+}
+function cerrarModalEstado(){document.getElementById('modal-estado').classList.remove('active');}
+function actualizarLabelCom(){
+  var v=document.getElementById('modal-nuevo-estado').value;
+  document.getElementById('modal-com-label').innerHTML=v==='Resuelto'?'Comentario de cierre <span style="color:#aaa;font-weight:400">(opcional)</span>':'Comentario interno <span style="color:#aaa;font-weight:400">(opcional)</span>';
+}
+function confirmarEstado(){
+  var estado=document.getElementById('modal-nuevo-estado').value;
+  var comentario=document.getElementById('modal-comentario').value.trim();
+  api('/api/solicitudes/'+pendingId+'/estado','PATCH',{estado:estado,comentario:comentario}).then(function(d){
+    if(d.ok){
+      for(var i=0;i<todasSols.length;i++){if(todasSols[i].id===pendingId){todasSols[i]=d.solicitud;break;}}
+      for(var i=0;i<solsAsig.length;i++){if(solsAsig[i].id===pendingId){solsAsig[i]=d.solicitud;break;}}
+      cerrarModalEstado();
+      if(sesion&&sesion.rol==='superadmin')renderListaDash();else renderListaAsig();
+    }
+  });
+}
+
+/* ── Comentario rapido ── */
+function enviarComentario(id){
+  var ta=document.getElementById('cin-'+id);var texto=ta.value.trim();if(!texto)return;
+  api('/api/solicitudes/'+id+'/comentarios','POST',{texto:texto}).then(function(d){
+    if(d.ok){
+      for(var i=0;i<todasSols.length;i++){if(todasSols[i].id===id){todasSols[i].comentarios.push(d.comentario);break;}}
+      for(var i=0;i<solsAsig.length;i++){if(solsAsig[i].id===id){solsAsig[i].comentarios.push(d.comentario);break;}}
+      ta.value='';
+      if(sesion&&sesion.rol==='superadmin')renderListaDash();else renderListaAsig();
+      setTimeout(function(){var b=document.getElementById('coms-'+id);if(b&&!b.classList.contains('open'))toggleComs(id);},60);
+    }
+  });
+}
+
+/* ── Asignar / prioridad ── */
+function asignar(id,admin){
+  api('/api/solicitudes/'+id+'/asignar','PATCH',{asignadoA:admin||null}).then(function(d){
+    if(d.ok){for(var i=0;i<todasSols.length;i++){if(todasSols[i].id===id){todasSols[i].asignadoA=admin||null;break;}}renderListaDash();}
+  });
+}
+function cambiarPrioridad(id,prio){
+  api('/api/solicitudes/'+id+'/prioridad','PATCH',{prioridad:prio}).then(function(d){
+    if(d.ok){
+      for(var i=0;i<todasSols.length;i++){if(todasSols[i].id===id){todasSols[i].prioridad=prio;break;}}
+      for(var i=0;i<solsAsig.length;i++){if(solsAsig[i].id===id){solsAsig[i].prioridad=prio;break;}}
+    }
+  });
+}
+
+/* ── Usuarios ── */
+function renderUsuarios(){
+  adminsCache=null;
+  api('/api/usuarios').then(function(users){
+    adminsCache=users;var h='';
+    for(var i=0;i<users.length;i++){
+      var u=users[i];
+      var cnt=0;if(u.rol==='admin'){for(var j=0;j<todasSols.length;j++){if(todasSols[j].asignadoA===u.username)cnt++;}}
+      var del=u.username==='superadmin'?'':'<button class="btn sm danger" onclick="eliminarUsuario('+u.id+')">Eliminar</button>';
+      h+='<tr><td>'+u.username+'</td><td><span class="badge '+(u.rol==='superadmin'?'super':'admin')+'">'+u.rol+'</span></td><td>'+(u.rol==='admin'?cnt:'&#8212;')+'</td><td>'+del+'</td></tr>';
+    }
+    document.getElementById('tbody-usr').innerHTML=h;
+  });
+}
+function agregarUsuario(){
+  var u=document.getElementById('nu-user').value.trim(),p=document.getElementById('nu-pass').value.trim(),r=document.getElementById('nu-rol').value;
+  var box=document.getElementById('alert-usr');
+  if(!u||!p){box.innerHTML='<div class="alert error">Completa usuario y contrasena.</div>';return;}
+  api('/api/usuarios','POST',{username:u,password:p,rol:r}).then(function(d){
+    if(d.ok){document.getElementById('nu-user').value='';document.getElementById('nu-pass').value='';box.innerHTML='<div class="alert success">Usuario creado.</div>';setTimeout(function(){box.innerHTML='';},3000);renderUsuarios();}
+    else{box.innerHTML='<div class="alert error">'+d.error+'</div>';}
+  });
+}
+function eliminarUsuario(id){
+  if(!confirm('Eliminar este usuario?'))return;
+  api('/api/usuarios/'+id,'DELETE').then(function(){renderUsuarios();});
+}
+
+/* ── WhatsApp ── */
+function probarWA(){
+  var phone=document.getElementById('wa-phone').value.trim(),apikey=document.getElementById('wa-apikey').value.trim(),box=document.getElementById('alert-wa');
+  if(!phone||!apikey){box.innerHTML='<div class="alert error">Ingresa numero y API key.</div>';return;}
+  api('/api/wa/config','POST',{phone:phone,apikey:apikey}).then(function(){
+    box.innerHTML='<div class="alert info">Enviando...</div>';
+    api('/api/wa/test','POST').then(function(d){
+      box.innerHTML=d.ok?'<div class="alert success">Enviado. Revisa tu WhatsApp.</div>':'<div class="alert error">Error: '+(d.error||'no se pudo enviar')+'</div>';
+    });
+  });
+}
+function guardarWA(){
+  api('/api/wa/config','POST',{phone:document.getElementById('wa-phone').value.trim(),apikey:document.getElementById('wa-apikey').value.trim()}).then(function(){
+    document.getElementById('alert-wa').innerHTML='<div class="alert success">Guardado.</div>';
+    setTimeout(function(){document.getElementById('alert-wa').innerHTML='';},3000);
+  });
+}
+
+/* ── Calendario ── */
+function renderCalendario(){
+  var now=new Date();
+  if(calY===undefined){calY=now.getFullYear();calM=now.getMonth();}
+  var MESES=['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+  document.getElementById('cal-titulo').textContent=MESES[calM]+' '+calY;
+  var fd=new Date(calY,calM,1).getDay();
+  var dim=new Date(calY,calM+1,0).getDate();
+  var dip=new Date(calY,calM,0).getDate();
+  var off=(fd+6)%7;
+  var tot=Math.ceil((off+dim)/7)*7;
+  var h='';
+  var dns=['Lun','Mar','Mie','Jue','Vie','Sab','Dom'];
+  for(var i=0;i<7;i++)h+='<div class="cal-dn">'+dns[i]+'</div>';
+  for(var i=0;i<tot;i++){
+    var day,month=calM,year=calY,oth=false;
+    if(i<off){day=dip-off+i+1;month=calM-1;oth=true;if(month<0){month=11;year--;}}
+    else if(i-off<dim){day=i-off+1;}
+    else{day=i-off-dim+1;month=calM+1;oth=true;if(month>11){month=0;year++;}}
+    var isT=day===now.getDate()&&month===now.getMonth()&&year===now.getFullYear();
+    var evs=[];
+    for(var j=0;j<todasSols.length;j++){
+      var s=todasSols[j];if(!s.fecha)continue;
+      var p=s.fecha.split(' ')[0].split('/');
+      if(p.length<3)continue;
+      if(parseInt(p[0])===day&&parseInt(p[1])-1===month&&(2000+parseInt(p[2]))===year)evs.push(s);
+    }
+    var numH=isT?'<span class="cal-n" style="background:#F5A623;color:#fff;width:22px;height:22px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-size:10px">'+day+'</span>':'<span class="cal-n">'+day+'</span>';
+    var evH='';var mx=3;
+    for(var j=0;j<Math.min(evs.length,mx);j++){
+      var lb=(evs[j].tipo||'').replace('Solicitud de ','').replace('Solicitud ','');
+      evH+='<div class="cal-ev '+(evs[j].prioridad||'Normal')+(evs[j].estado==='Resuelto'?' done':'')+'" title="'+(evs[j].nombre||'')+' - '+evs[j].tipo+'">'+lb+'</div>';
+    }
+    if(evs.length>mx)evH+='<div class="cal-more">+'+(evs.length-mx)+' mas</div>';
+    h+='<div class="cal-cell'+(oth?' oth':'')+(isT?' tod':'')+'">'+numH+evH+'</div>';
+  }
+  document.getElementById('cal-grid').innerHTML=h;
+}
+function calNav(dir){
+  if(dir===0){var n=new Date();calY=n.getFullYear();calM=n.getMonth();}
+  else{calM+=dir;if(calM>11){calM=0;calY++;}if(calM<0){calM=11;calY--;}}
+  renderCalendario();
+}
+
+/* ── Init ── */
+api('/api/me').then(function(d){
+  if(d.user){sesion=d.user;document.getElementById('vista-publica').style.display='none';document.getElementById('vista-admin').classList.add('active');cargarAdmin();}
+});
+
+</script>
+</body>
+</html>
